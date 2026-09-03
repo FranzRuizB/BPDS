@@ -1,69 +1,211 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+
+type Task = {
+  text: string;
+  completed: boolean;
+};
 
 export default function Home() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [newTask, setNewTask] = useState("");
+
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState("");
+
+  const addTask = () => {
+    if (newTask.trim() === "") return;
+
+    setTasks([
+      ...tasks,
+      {
+        text: newTask.trim(),
+        completed: false,
+      },
+    ]);
+
+    setNewTask("");
+  };
+
+  const saveEdit = (index: number) => {
+    if (editingText.trim() === "") {
+      setEditingIndex(null);
+      return;
+    }
+
+    const updatedTasks = [...tasks];
+
+    updatedTasks[index] = {
+      ...updatedTasks[index],
+      text: editingText.trim(),
+    };
+
+    setTasks(updatedTasks);
+    setEditingIndex(null);
+  };
+
+  const toggleTask = (index: number) => {
+    const updatedTasks = [...tasks];
+
+    updatedTasks[index] = {
+      ...updatedTasks[index],
+      completed: !updatedTasks[index].completed,
+    };
+
+    setTasks(updatedTasks);
+  };
+
+  const deleteTask = (index: number) => {
+    const updatedTasks = tasks.filter(
+      (_, taskIndex) => taskIndex !== index
+    );
+
+    setTasks(updatedTasks);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+    <main className="min-h-screen bg-slate-100 px-4 py-10 text-slate-800">
+      <div className="mx-auto max-w-4xl">
+
+        {/* TARJETA PRINCIPAL */}
+        <section className="rounded-2xl border-2 border-slate-700 bg-white p-6 shadow-sm sm:p-10">
+
+          {/* TÍTULO */}
+          <div className="mb-8 border-b border-slate-300 pb-6">
+            <h1 className="font-serif text-3xl font-bold tracking-wide sm:text-4xl">
+              MIS TAREAS
+            </h1>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Organiza y administra tus tareas
+            </p>
+          </div>
+
+          {/* AGREGAR TAREA */}
+          <div className="mb-6">
+            <input
+              type="text"
+              placeholder="+ Escribe una nueva tarea..."
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  addTask();
+                }
+              }}
+              className="w-full rounded-lg border-2 border-dashed border-slate-500 bg-slate-50 px-5 py-4 text-lg transition focus:border-teal-500 focus:bg-white focus:outline-none"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+            <p className="mt-2 text-sm text-slate-400">
+              Presiona Enter para agregar una tarea
+            </p>
+          </div>
+
+          {/* LISTA DE TAREAS */}
+          <div className="space-y-3">
+
+            {tasks.length === 0 && (
+              <div className="rounded-lg border border-dashed border-slate-300 py-10 text-center text-slate-400">
+                Aún no tienes tareas.
+              </div>
+            )}
+
+            {tasks.map((task, index) => (
+              <div
+                key={index}
+                className={`group flex items-center justify-between rounded-lg border-2 border-dashed p-4 transition duration-200 sm:p-5 ${
+                  task.completed
+                    ? "border-teal-300 bg-teal-50"
+                    : "border-slate-200 bg-white hover:border-teal-400 hover:bg-slate-50"
+                }`}
+              >
+
+                {/* PARTE IZQUIERDA */}
+                <div className="flex min-w-0 flex-1 items-center gap-4">
+
+                  {/* CÍRCULO PARA COMPLETAR */}
+                  <button
+                    onClick={() => toggleTask(index)}
+                    className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 text-lg transition ${
+                      task.completed
+                        ? "border-teal-500 bg-teal-500 text-white"
+                        : "border-slate-500 bg-white text-transparent hover:border-teal-500"
+                    }`}
+                    aria-label="Completar tarea"
+                  >
+                    ✓
+                  </button>
+
+                  {/* EDITAR O MOSTRAR TEXTO */}
+                  {editingIndex === index ? (
+                    <input
+                      type="text"
+                      value={editingText}
+                      onChange={(e) =>
+                        setEditingText(e.target.value)
+                      }
+                      onBlur={() => saveEdit(index)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          saveEdit(index);
+                        }
+                      }}
+                      autoFocus
+                      className="w-full rounded-md border-2 border-teal-500 bg-white px-4 py-2 text-lg outline-none"
+                    />
+                  ) : (
+                    <div className="min-w-0 flex-1">
+                      <p
+                        onDoubleClick={() => {
+                          setEditingIndex(index);
+                          setEditingText(task.text);
+                        }}
+                        className={`cursor-pointer truncate text-lg transition ${
+                          task.completed
+                            ? "text-slate-500 line-through"
+                            : "text-slate-800"
+                        }`}
+                      >
+                        {task.text}
+                      </p>
+
+                      <p className="mt-1 hidden text-xs text-teal-600 group-hover:block">
+                        Doble clic para editar
+                      </p>
+                    </div>
+                  )}
+
+                </div>
+
+                {/* ELIMINAR */}
+                <button
+                  onClick={() => deleteTask(index)}
+                  className="ml-4 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-xl text-slate-400 transition hover:bg-red-50 hover:text-red-500"
+                  aria-label="Eliminar tarea"
+                  title="Eliminar tarea"
+                >
+                  🗑
+                </button>
+
+              </div>
+            ))}
+
+          </div>
+
+          {/* INFORMACIÓN */}
+          {tasks.length > 0 && (
+            <div className="mt-8 border-t border-slate-200 pt-5 text-sm text-slate-500">
+              Total de tareas:{" "}
+              <span className="font-semibold text-slate-700">
+                {tasks.length}
+              </span>
+            </div>
+          )}
+
+        </section>
+
+      </div>
+    </main>
   );
 }
